@@ -1,3 +1,4 @@
+from colors import Colors
 from datetime import datetime
 class MEU_BANCO():
 
@@ -13,7 +14,7 @@ class MEU_BANCO():
 
         self.__start : bool = True
         while self.__start:
-            print("=== SEJA BEM-VINDO AO $BANCO CENTRAL$ ===")
+            print(Colors.CYAN + "=== SEJA BEM-VINDO AO $BANCO CENTRAL$ ===" + Colors.END)
             self.__MENU_PRINCIPAL()
 
     def __MENU_PRINCIPAL(self) -> None:
@@ -56,10 +57,10 @@ class MEU_BANCO():
         if valor_deposito > 0:
             self.__saldo += valor_deposito
             self.__extrato += f"[Depósito feito] Valor de R${valor_deposito:.2f} - {self._hora_atual}\n"
-            print("=== DEPÓSITO REALIZADO COM SUCESSO! ===")
+            print(Colors.GREEN + "=== DEPÓSITO REALIZADO COM SUCESSO! ===" + Colors.END)
 
         else:
-            print("[x] Este valor não pode ser adicionado em sua conta")
+            print(Colors.RED + "[x] Este valor não pode ser adicionado em sua conta"  + Colors.END)
 
     def __SAQUE(self) -> None:
         """
@@ -73,14 +74,14 @@ class MEU_BANCO():
             print("[x] Você não pode realizar este tipo de ação porquê o valor de saque excede seu saldo...")
 
         elif valor_saque > self.__limite:
-            print(f"[x] Você não pode realizar este tipo de ação porquê seu limite é de R${self.__limite:.2f}...")
+            print(Colors.RED + f"[x] Você não pode realizar este tipo de ação porquê seu limite é de R${self.__limite:.2f}..."  + Colors.END)
 
         elif self.__LIMITE_SAQUES == 0:
-            print("[x] Você não pode realizar este tipo de ação porquê sua quantidade de saques por semana acabou...")
+            print(Colors.RED + "[x] Você não pode realizar este tipo de ação porquê sua quantidade de saques por semana acabou..." + Colors.END)
 
         else:
             self.__extrato += f"[SAQUE] Valor de R${valor_saque:.2f} - {self._hora_atual}\n"
-            print("=== SAQUE REALIZADO COM SUCESSO! ===")
+            print(Colors.GREEN + "=== SAQUE REALIZADO COM SUCESSO! ===" + Colors.END)
 
             self.__numero_saques += 1
 
@@ -94,8 +95,8 @@ if __name__ == '__main__':
     try:
         MEU_BANCO()
 
-    except Exception as error:
-        print(error)
+    except ExceptionGroup:
+        print(ExceptionGroup)
 
     finally:
         print("== APLICAÇÃO ENCERRADA! ==")
