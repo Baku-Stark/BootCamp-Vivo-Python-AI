@@ -38,13 +38,14 @@ class Conta:
         return self._historico
     
     def sacar(self, valor_saque):
-        if valor_saque > self.saldo:
+        if valor_saque > self._saldo:
             print("[x] Você não pode realizar este tipo de ação porquê o valor de saque excede seu saldo...")
 
         else:
-            self.saldo -= valor_saque
+            self._saldo -= valor_saque
             print(Colors.BACK_GREEN + "=== SAQUE REALIZADO COM SUCESSO! ===" + Colors.END)
             print(f"└──[SAQUE] Valor de R${valor_saque:.2f} - {CurrentTime.created_at()}")
+            return True
 
         return False
 
@@ -192,7 +193,7 @@ class BANCO_SISTEMA:
                 self.__LISTAR_CONTAS()
 
             elif menu_choice == 6:
-                self.__NOVO_CLIENTE(self._clientes)
+                self.__NOVO_CLIENTE()
 
             else:# menu_choice >= 7
                 self.__start = False
@@ -247,25 +248,34 @@ class BANCO_SISTEMA:
         model_cpf = RegexSys.model_cpf(cpf)
         print('')
 
-        cliente_selecionado = self.filtrar_cliente(model_cpf)
-        # print(cliente_selecionado)
-
-        if not cliente_selecionado:
+        cliente = self.filtrar_cliente(model_cpf)
+        #print(cliente)
+        
+        if not cliente:
             print(Colors.BACK_PURPLE + f"[-] Não foi possível encontrar um cliente com esse CPF! -- ({model_cpf})" + Colors.END)
-            print(Colors.PURPLE + "└── Encerrando fluxo de criação de conta" + Colors.END)
+            print(Colors.PURPLE + "└── Encerrando fluxo de saque de dinheiro" + Colors.END)
             return
-
+        
         else:
             print(Colors.BACK_GREEN + f"[-] Cliente $= Banco Cental =$ encontrado! -- ({model_cpf})" + Colors.END)
-            print(Colors.GREEN + f"└── Seja bem-vindo, {cliente_selecionado['nome']}!\n" + Colors.END)
+            print(Colors.GREEN + f"└── '{cliente.nome}' está realizando seu saque!\n" + Colors.END)
+
             print("=$ SACANDO VALOR DA CONTA $=")
             valor_saque = float(input("Qual o valor que será feito para saque?\nR$"))
             print('=' * 10)
             print('')
 
-            transacao = Saque(valor_saque)    
+            transacao = Saque(valor_saque, CurrentTime.created_at())
+            # print(f"Transação: {transacao}")
 
-    def __EXTRATO(self) -> str:
+            conta = self.recuperar_conta_cliente(cliente)
+
+            if not conta:
+                return
+            
+            cliente.realizar_transacao(conta, transacao)
+
+    def __EXTRATO(self) -> None:
         """
             Módulo para mostrar o extrato do cliente.
         """
@@ -273,21 +283,35 @@ class BANCO_SISTEMA:
         model_cpf = RegexSys.model_cpf(cpf)
         print('')
 
-        cliente_selecionado = self.filtrar_cliente(model_cpf)
-
-        conta = self.recuperar_conta_cliente(cliente_selecionado)
-        extrato = ""
-
-        transacoes = conta['historico']['transacoes']
+        cliente = self.filtrar_cliente(model_cpf)
+        #print(cliente)
         
-        print(f"{'=' * 10} EXTRATO {'=' * 10}")
-        if not transacoes:
-            print(Colors.BACK_GREEN + f"[-] Não foram realizadas movimentações -- ({model_cpf})" + Colors.END)
-
+        if not cliente:
+            print(Colors.BACK_PURPLE + f"[-] Não foi possível encontrar um cliente com esse CPF! -- ({model_cpf})" + Colors.END)
+            print(Colors.PURPLE + "└── Encerrando fluxo de exibição do extrato bancário." + Colors.END)
+            return
+        
         else:
-            for transacao in transacoes:
-                extrato += f"{transacao['tipo']} - ({transacao['data']})\n- R${transacao['valor']:.2f}"
-        print("=" * 29)
+            print(Colors.BACK_GREEN + f"[-] Cliente $= Banco Cental =$ encontrado! -- ({model_cpf})" + Colors.END)
+            print(Colors.GREEN + f"└── Extrato de '{cliente.nome}'\n" + Colors.END)
+
+            conta = self.recuperar_conta_cliente(cliente)
+            if not conta:
+                return
+
+            transacoes = conta.historico.transacoes
+            
+            extrato = ""
+            print(f"{'=' * 10} EXTRATO {'=' * 10}")
+            if not transacoes:
+                print(Colors.BACK_PURPLE + f"[-] Não foram realizadas movimentações -- ({model_cpf})" + Colors.END)
+
+            else:
+                for transacao in transacoes:
+                    extrato += f"{transacao['tipo']} - ({transacao['data']})\n- R${transacao['valor']:.2f}\n\n"
+            print(extrato)
+            print(f"\nSaldo:\tR${conta.saldo:.2f}")
+            print("=" * 29)
 
     def __NOVA_CONTA(self) -> None:
         """
@@ -328,9 +352,9 @@ class BANCO_SISTEMA:
                 print(conta)
 
         else:
-            print(Colors.BACK_PURPLE + f"[-] Nenhuma conta foi criada ainda" + Colors.END)
+            print(Colors.BACK_PURPLE + f"[-] Nenhuma conta foi criada ainda." + Colors.END)
 
-    def __NOVO_CLIENTE(self, clientes : list[object]) -> None:
+    def __NOVO_CLIENTE(self) -> None:
         """
                 Módulo para criar um novo usuario.
         """
@@ -358,11 +382,12 @@ class BANCO_SISTEMA:
 
                 cliente = PessoaFisica(nome, data_nascimento, model_cpf, endereco)
 
-                clientes.append(cliente)
+                self._clientes.append(cliente)
                 
                 print(Colors.BACK_GREEN + "[-] Cliente criado com sucesso!" + Colors.END)
 
                 # === Criar a primeira conta para o novo usuário
+                print(Colors.GREEN + f"└── '{cliente.nome}' crie sua primeira conta no banco." + Colors.END)
                 self.__NOVA_CONTA()
 
             else:

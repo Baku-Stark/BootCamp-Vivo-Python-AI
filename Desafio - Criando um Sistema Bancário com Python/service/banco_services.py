@@ -62,7 +62,9 @@ class Saque(Transacao):
         sucesso_transicao = conta.sacar(self.valor)
 
         if sucesso_transicao:
-            # print(self.created_at)
+            # print(self.valor)
+            # print("registrar() -> Class 'Saque'")
+            # print(conta)
             conta.historico.adicionar_transacao(self, self.created_at)
 
 class Historico:
