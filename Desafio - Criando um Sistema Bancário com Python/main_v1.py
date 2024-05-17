@@ -2,7 +2,6 @@ from service import Colors
 from datetime import datetime
 
 class MEU_BANCO():
-
     def __init__(self) -> None:
         self._hora_atual = datetime.now().strftime("%H:%M")
 

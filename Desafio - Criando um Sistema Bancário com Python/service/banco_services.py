@@ -9,18 +9,16 @@ class Transacao(ABC):
     def valor(self):
         pass
 
-    @property
-    @abstractproperty
-    def created_at(self):
-        pass
-
     @abstractclassmethod
-    def registrar(self, conta, created_at):
+    def registrar(self, conta):
         pass
 
 class Deposito(Transacao):
-    def __init__(self, valor : float, created_at : str) -> None:
-        self._valor : valor
+    """
+        # Sistema para depósito do banco.
+    """
+    def __init__(self, valor, created_at) -> None:
+        self._valor = valor
         self._created_at = created_at
     
     @property
@@ -32,14 +30,24 @@ class Deposito(Transacao):
         return self._created_at
     
     def registrar(self, conta):
-        sucesso_transicao = conta.depositar(self.valor, self.created_at)
+        """
+            registrar() -> Class Deposito
+        """
+        # print(self.valor)
+        # print("registrar() -> Class 'Deposito'")
+        # print(conta)
+        sucesso_transicao = conta.depositar(self.valor)
+
+        if sucesso_transicao:
+            # print(self.created_at)
+            conta.historico.adicionar_transacao(self, self.created_at)
 
 class Saque(Transacao):
     """
         # Sistema para saque do banco.
     """
-    def __init__(self, valor : float, created_at : str) -> None:
-        self._valor : valor
+    def __init__(self, valor, created_at) -> None:
+        self._valor = valor
         self._created_at = created_at
     
     @property
@@ -50,8 +58,12 @@ class Saque(Transacao):
     def created_at(self):
         return self._created_at
 
-    def registrar(self, Conta_Class):
-        sucesso_transicao = Conta_Class.sacar(self.valor)
+    def registrar(self, conta):
+        sucesso_transicao = conta.sacar(self.valor)
+
+        if sucesso_transicao:
+            # print(self.created_at)
+            conta.historico.adicionar_transacao(self, self.created_at)
 
 class Historico:
     """
@@ -64,7 +76,7 @@ class Historico:
     def transacoes(self):
         return self._transacoes
 
-    def adicionar_transacao(self, transacao : object, created_at : str):
+    def adicionar_transacao(self, transacao, created_at : str):
         self._transacoes.append(
             {
                 "tipo": transacao.__class__.__name__,

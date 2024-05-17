@@ -7,6 +7,7 @@
 
 import os, re
 from platform import *
+from datetime import datetime
   
 class Colors:
     BLACK =     '\033[1;30m'
@@ -38,6 +39,13 @@ class OperationalSys:
 
         else:
             os.system("cls")
+
+class CurrentTime:
+    @staticmethod
+    def created_at() -> str:
+        _data_atual = datetime.now().strftime("%d/%m/%y")
+        _hora_atual = datetime.now().strftime("%H:%M")
+        return f"{_data_atual} - {_hora_atual}"
 
 class RegexSys:
     @staticmethod
