@@ -31,8 +31,8 @@ class Colors:
     END =       '\033[m'
 
 class OperationalSys:
-    @classmethod
-    def clean_console(self) -> None:
+    @staticmethod
+    def clean_console():
         if system() == "Linux":
             os.system("clear")
 
@@ -40,8 +40,8 @@ class OperationalSys:
             os.system("cls")
 
 class RegexSys:
-    @classmethod
-    def model_cpf(self, cpf : str) -> str:
+    @staticmethod
+    def model_cpf(cpf : str):
         cpf_model = ""
 
         if len(cpf) == 11:
@@ -58,10 +58,10 @@ class RegexSys:
 
         return cpf_model
 
-    @classmethod
-    def match_cpf(self, cpf : str) -> bool:
+    @staticmethod
+    def match_cpf(cpf : str):
         """
-            Seguir modelo: 123.456.789-89
+            Seguir modelo (123.456.789-89) com Regex.
 
             args:
                 cpf - String

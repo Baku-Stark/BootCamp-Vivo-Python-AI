@@ -1,5 +1,85 @@
 from datetime import datetime
-from service import OperationalSys, RegexSys, Colors
+from service import *
+from service.banco_services import *
+
+
+class Conta:
+    def __init__(self, numero, cliente) -> None:
+        self._saldo = 0
+        self._agencia = "0001"
+        self._numero = numero
+        self._cliente = cliente
+        self._historico = Historico()
+
+    @property
+    def saldo(self):
+        return self._saldo
+    
+    @property
+    def numero(self):
+        return self._numero
+
+    @property
+    def agencia(self):
+        return self._agencia
+
+    @property
+    def cliente(self):
+        return self._cliente
+
+    @property
+    def historico(self):
+        return self._historico
+    
+    def sacar(self, valor_saque : float, created_at : str):
+        if valor_saque > self.saldo:
+            print("[x] Você não pode realizar este tipo de ação porquê o valor de saque excede seu saldo...")
+
+        else:
+            self.saldo -= valor_saque
+            f"[SAQUE] Valor de R${valor_saque:.2f} - {created_at}\n"
+            print(Colors.BACK_GREEN + "=== SAQUE REALIZADO COM SUCESSO! ===" + Colors.END)
+        return False
+
+    def depositar(self, valor_deposito : float, created_at : str):
+        if valor_deposito > 0:
+            self.saldo += valor_deposito
+
+            print(Colors.BACK_GREEN + f"=== DEPÓSITO DE 'R${valor_deposito:.2f}' REALIZADO COM SUCESSO ÀS {created_at}! ===" + Colors.END)
+
+        else:
+            print("[x] Este valor não pode ser adicionado em sua conta")
+
+        return False
+
+    @classmethod
+    def nova_conta(cls, cliente_selecionado : object, numero_conta : int):
+        return cls(numero_conta, cliente_selecionado)
+
+class ContaCorrente(Conta):
+    def __init__(self, numero_conta : int, cliente : object, limite : int = 500, limite_saque = 3) -> None:
+        super().__init__(numero_conta, cliente)
+        self._limite = limite
+        self._limite_saque = limite_saque
+
+    def sacar(self, valor_saque: float, created_at: str):
+        if valor_saque > self._limite:
+            print(Colors.RED + f"[x] Você não pode realizar este tipo de ação porquê seu limite é de R${self._limite:.2f}..."  + Colors.END)
+
+        elif self._limite_saque == 0:
+            print(Colors.RED + "[x] Você não pode realizar este tipo de ação porquê sua quantidade de saques por semana acabou..." + Colors.END)
+
+        else:
+            return super().sacar(valor_saque, created_at)
+        
+        return False
+
+    def __str__(self):
+        return f"""\
+            Agência:\t{self._agencia}
+            C/C:\t{self._numero}
+            Titular:\t{self._cliente['nome']}
+        """
 
 class Cliente:
     def __init__(self, endereco : str) -> None:
@@ -40,24 +120,28 @@ class PessoaFisica(Cliente):
             }
         )
 
-class BANCO_SISTEMA(PessoaFisica):
+class BANCO_SISTEMA:
     """
         Aplicação principal do Banco.
     """
 
     def __init__(self) -> None:
-        self.contas : list[object] = []
-        self._clientes : list[object] = []
+        self._contas : list[object] = []
+        self._clientes : list[object] = [
+            {
+                'contas': [],
+                'endereco': 'Rio de Janeiro - Brazil', 
+                'nome': 'Wallace De Freitas', 
+                'data_nascimento': '07/07/2000',
+                'cpf': '123.456.789-55'
+            }
+        ]
 
         self._data_atual = datetime.now().strftime("%d/%m/%y")
         self._hora_atual = datetime.now().strftime("%H:%M")
-        self._created_at = f"{self._data_atual} - {self._hora_atual}"
+        self.created_at = f"{self._data_atual} - {self._hora_atual}"
 
         self.__extrato : str = ""
-        self.__saldo : int = 0
-        self.__limite : int = 500
-        self.__numero_saques : int = 0
-        self.__LIMITE_SAQUES : int = 3
         # --- vars ---
 
         self.__start : bool = True
@@ -66,7 +150,7 @@ class BANCO_SISTEMA(PessoaFisica):
             print("Criador da aplicação: Baku-Stark")
             self.__MENU_PRINCIPAL()
 
-    def filtrar_cliente(self, cpf : str) -> list:
+    def filtrar_cliente(self, cpf : str) -> object:
         clientes_filtrados = [cliente for cliente in self._clientes if cpf == cliente['cpf']]
         # print(clientes_filtrados)
 
@@ -84,30 +168,30 @@ class BANCO_SISTEMA(PessoaFisica):
             [ 3 ]\tExtrato
             [ 4 ]\tNova conta
             [ 5 ]\tListar contas
-            [ 6 ]\tNovo usuário
+            [ 6 ]\tCriar um novo usuário
             [ 7+ ]\tSair
             """)
             menu_choice = int(input("Escolha uma das opções acima: "))
             print('')
 
             if menu_choice == 1:
-                self.__DEPOSITAR()
+                self.__DEPOSITAR(self.created_at)
 
             elif menu_choice == 2:
-                self.__SAQUE()
+                self.__SAQUE(self.created_at)
 
             elif menu_choice == 3:
                 print("=== EXTRATO BANCÁRIO ===")
                 print(self.__EXTRATO())
 
             elif menu_choice == 4:
-                self.__NOVA_CONTA()
+                self.__NOVA_CONTA(self._contas)
 
             elif menu_choice == 5:
                 self.__LISTAR_CONTAS()
 
             elif menu_choice == 6:
-                self.__NOVO_USUARIO(self._clientes)
+                self.__NOVO_CLIENTE(self._clientes)
 
             else:# menu_choice >= 7
                 self.__start = False
@@ -117,7 +201,7 @@ class BANCO_SISTEMA(PessoaFisica):
         except ValueError:
             print(Colors.RED + f"[x] Este tipo de valor não é permitido como escolha.\n- {ValueError}" + Colors.END)
 
-    def __DEPOSITAR(self) -> None:
+    def __DEPOSITAR(self, created_at : str) -> None:
         """
             Módulo para depósito do dinheiro
         """
@@ -126,37 +210,24 @@ class BANCO_SISTEMA(PessoaFisica):
         valor_deposito = float(input("Qual o valor para depósito?\nR$"))
         print('=' * 10)
 
-        if valor_deposito > 0:
-            self.__saldo += valor_deposito
-            self.__extrato += f"[Depósito feito] Valor de R${valor_deposito:.2f} - {self._hora_atual}\n"
-            print(Colors.GREEN + "=== DEPÓSITO REALIZADO COM SUCESSO! ===" + Colors.END)
+        Conta.depositar(valor_deposito, created_at)
 
-        else:
-            print(Colors.RED + "[x] Este valor não pode ser adicionado em sua conta"  + Colors.END)
-
-    def __SAQUE(self) -> None:
+    def __SAQUE(self, created_at : str) -> None:
         """
             Módulo para saque do dinheiro
         """
-
         print("=$ SACANDO VALOR DA CONTA $=")
         valor_saque = float(input("Qual o valor que será feito para saque?\nR$"))
         print('=' * 10)
 
-        if valor_saque > self.__saldo:
-            print("[x] Você não pode realizar este tipo de ação porquê o valor de saque excede seu saldo...")
+        cpf = str(input("Informe seu CPF(somente número)\nr: ")).strip() # 123.456.789-89
+        model_cpf = RegexSys.model_cpf(cpf)
+        print('')
 
-        elif valor_saque > self.__limite:
-            print(Colors.RED + f"[x] Você não pode realizar este tipo de ação porquê seu limite é de R${self.__limite:.2f}..."  + Colors.END)
+        cliente_selecionado = self.filtrar_cliente(model_cpf)
 
-        elif self.__LIMITE_SAQUES == 0:
-            print(Colors.RED + "[x] Você não pode realizar este tipo de ação porquê sua quantidade de saques por semana acabou..." + Colors.END)
-
-        else:
-            self.__extrato += f"[SAQUE] Valor de R${valor_saque:.2f} - {self._hora_atual}\n"
-            print(Colors.GREEN + "=== SAQUE REALIZADO COM SUCESSO! ===" + Colors.END)
-
-            self.__numero_saques += 1
+        if not cliente_selecionado:
+            Conta.sacar(valor_saque, created_at)
 
     def __EXTRATO(self) -> str:
         """
@@ -164,7 +235,42 @@ class BANCO_SISTEMA(PessoaFisica):
         """
         return f"{self.__extrato}" if len(self.__extrato) > 0 else "[x] Nenhuma função foi feita no momento..."
 
-    def __NOVO_USUARIO(self, clientes : list[object]) -> None:
+    def __NOVA_CONTA(self, contas : list[object]) -> None:
+        """
+                Módulo para criar uma nova conta.
+        """
+        numero_conta = len(self._contas) + 1
+
+        cpf = str(input("Informe seu CPF(somente número)\nr: ")).strip() # 123.456.789-89
+        model_cpf = RegexSys.model_cpf(cpf)
+        print('')
+
+        cliente_selecionado = self.filtrar_cliente(model_cpf)
+
+        if not cliente_selecionado:
+            print(Colors.BACK_PURPLE + f"[-] Não foi possível encontrar um cliente com esse CPF! -- ({model_cpf})" + Colors.END)
+            print(Colors.PURPLE + "└── Encerrando fluxo de criação de conta" + Colors.END)
+            return
+
+        else:
+            conta = ContaCorrente.nova_conta(cliente_selecionado, numero_conta)
+
+            self._contas.append(conta)
+            cliente_selecionado['contas'].append(contas)
+
+    def __LISTAR_CONTAS(self):
+        """
+                Módulo para listar todas as contas de um usuário.
+        """
+        if len(self._contas) > 0:
+            print('= CONTAS =')
+            for conta in self._contas:
+                print(f"- {conta}")
+
+        else:
+            print(Colors.BACK_PURPLE + f"[-] Nenhuma conta foi criada ainda" + Colors.END)
+
+    def __NOVO_CLIENTE(self, clientes : list[object]) -> None:
         """
                 Módulo para criar um novo usuario.
         """
@@ -173,9 +279,11 @@ class BANCO_SISTEMA(PessoaFisica):
         print('')
 
         if self.filtrar_cliente(model_cpf):
-            print(Colors.BACK_PURPLE + "[-] Existe um cliente com esse CPF!" + Colors.END)
-            print(self.filtrar_cliente(model_cpf))
-            return
+            print(Colors.BACK_PURPLE + f"[-] Existe um cliente com esse CPF! -- ({model_cpf})" + Colors.END)
+            print(Colors.PURPLE + "└── Encerrando fluxo de criação de cliente" + Colors.END)
+            #print(self.filtrar_cliente(model_cpf))
+
+            return # finalizar o módulo
         
         if model_cpf:
             if RegexSys.match_cpf(model_cpf):
