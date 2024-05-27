@@ -1,5 +1,6 @@
-from service import Colors, CurrentTime
+import shutil, os
 import sqlite3 as lite
+from service import Colors, CurrentTime
 
 class SQLITE_FUNCTIONS:
     def __init__(self) -> None:
@@ -7,9 +8,21 @@ class SQLITE_FUNCTIONS:
         self._con = lite.connect(self._PATH)
         self._cur = self._con.cursor()
 
+        # realizar backup
+        self.backup_database()
+
         self.create_table_usuarios()
         self.create_table_destinos()
         self.create_table_reservas()
+
+    def backup_database(self):
+        db_file = "service/db/viagens.db"
+        print(os.path.join("service/backup"))
+
+        shutil.copy2(db_file, "service/backup")
+
+        print(Colors.BACK_GREEN + "=== BACKUP DO BANCO DE DADOS FEITO COM SUCESSO ===" + Colors.END)
+        print(Colors.GREEN + f"└── ({CurrentTime.created_at()})" + Colors.END)
 
     def create_table_usuarios(self):
         with self._con:
@@ -65,7 +78,8 @@ class SQLITE_FUNCTIONS:
                         id_usuario INTEGER,
                         id_destino INTEGER,
                         status VARCHAR(255),
-                        data DATE NOT NULL
+                        data DATE NOT NULL,
+                        FOREIGN KEY (id_usuario) REFERENCES usuarios(id),
                     )
                 """
                 )
@@ -139,8 +153,24 @@ class SQLITE_FUNCTIONS:
 
                 list_usuarios = self._cur.fetchall()
 
-                for usuario in list_usuarios:
-                    print(usuario)
+                print(list_usuarios)
+
+        except lite.OperationalError as error:
+            print(Colors.BACK_RED + "=== `sqlite3.OperationalError` ===" + Colors.END)
+            print(f"└──[{__name__}] - ({error})")
+
+        except lite.IntegrityError as error:
+            print(Colors.BACK_RED + "=== `IntegrityError` ===" + Colors.END)
+            print(f"└──[{__name__}] - ({error})")
+
+    def atualizar(self, _id, email_update):
+        try:
+            with self._con:
+                query = f"UPDATE usuarios SET email='{email_update}' WHERE id={_id}"
+                self._cur.execute(query)
+
+                print(Colors.BACK_GREEN + "=== ATUALIZAÇÃO FEITA COM SUCESSO! ===" + Colors.END)
+                print(Colors.GREEN + f"└──[TABELA `viagens.usuarios`] '{email_update}' UPDATE - ({CurrentTime.created_at()})" + Colors.END)
 
         except lite.OperationalError as error:
             print(Colors.BACK_RED + "=== `sqlite3.OperationalError` ===" + Colors.END)
