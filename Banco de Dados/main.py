@@ -17,9 +17,7 @@ class Main():
         # id [INT], id_usuario [INT], id_destino [INT], status [STRING], data [STRING (ANO-DIA-MES)]
         #sql_func.criar_nova_reserva([1, 1, 1, "pendente", "2028-12-12"])
         
-        #sql_func.atualizar(3, "zoro_roronoa@eastblue.com")
-        
-        sql_func.ler_usuarios_viagens("destinos")
+        sql_func.ler_usuarios_viagens("usuarios")
 
 OperationalSys.clean_console()
 Main()

@@ -17,7 +17,7 @@ class SQLITE_FUNCTIONS:
 
     def backup_database(self):
         db_file = "service/db/viagens.db"
-        print(os.path.join("service/backup"))
+        #print(os.path.join("service/backup"))
 
         shutil.copy2(db_file, "service/backup")
 
