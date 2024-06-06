@@ -1,5 +1,7 @@
 # </> | Desenvolvendo sua Primeira API com FastAPI, Python e Docker
 
+- [Repositório](https://github.com/digitalinnovationone/workout_api/tree/main/workout_api)
+
 ## Criando ambiente virtual
 
 ```bash
@@ -67,4 +69,23 @@ uvicorn           0.30.1
 uvloop            0.19.0
 watchfiles        0.22.0
 websockets        12.0
+```
+
+## Ativando o uvicorn
+
+```bash
+uvicorn workout_api.main:app --reload
+```
+
+> **Makefile**
+
+```bash
+run:
+	@uvicorn workout_api.main:app --reload
+```
+
+> **Makefile _run_**
+
+```bash
+make run
 ```
