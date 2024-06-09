@@ -1,6 +1,6 @@
 # </> | Desenvolvendo sua Primeira API com FastAPI, Python e Docker
 
-- [Repositório](https://github.com/digitalinnovationone/workout_api/tree/main/workout_api)
+- [Repositório da aula](https://github.com/digitalinnovationone/workout_api/tree/main/workout_api)
 
 ## Criando ambiente virtual
 
