@@ -1,3 +1,0 @@
-"""
-Centro de Treinamento
-"""
