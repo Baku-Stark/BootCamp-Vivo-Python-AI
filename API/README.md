@@ -1,3 +1,9 @@
+<div align="center">
+
+ <img height="130" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/fastapi/fastapi-original-wordmark.svg" />
+
+</div>
+
 # </> | Desenvolvendo sua Primeira API com FastAPI, Python e Docker
 
 - [Repositório da aula](https://github.com/digitalinnovationone/workout_api/tree/main/workout_api)
@@ -21,7 +27,7 @@ python -m pip install --upgrade pip
 ```
 
 ```bash
-pip install fastapi uvicorn sqlalchemy pydantic alembic asyncpg
+pip install fastapi uvicorn sqlalchemy pydantic alembic asyncpg pydantic-settings
 ```
 
 > **requirements.txt**
@@ -52,6 +58,7 @@ MarkupSafe==2.1.5
 mdurl==0.1.2
 orjson==3.10.3
 pydantic==2.7.3
+pydantic-settings==2.3.2
 pydantic_core==2.18.4
 Pygments==2.18.0
 python-dotenv==1.0.1

@@ -1,12 +1,29 @@
-from pydantic import *
-from typing import Annotated
+from typing import Annotated, Optional
+from pydantic import Field, PositiveFloat
+from workout_api.categorias.schemas import CategoriaIn
+from workout_api.centro_treinamento.schemas import CentroTreinamentoAtleta
 
-from workout_api.contrib.schemas import BaseSchema
+from workout_api.contrib.schemas import BaseSchema, OutMixin
+
 
 class Atleta(BaseSchema):
-    nome  : Annotated[str, Field(description="Nome do atleta", examples="Baku Stark", max_lenght=50)]
-    cpf   : Annotated[str, Field(description="CPF do atleta", examples="123.456.789.12", max_lenght=11)]
-    idade : Annotated[int, Field(description="Idade do atleta", max_lenght=2)]
-    peso  : Annotated[PositiveFloat, Field(description="Peso do atleta", examples="75.6")]
-    altura: Annotated[PositiveFloat, Field(description="Peso do atleta", examples="1.78")]
-    sexo  : Annotated[str, Field(description="Sexo do atleta", examples="M", max_lenght=1)]
+    nome: Annotated[str, Field(description='Nome do atleta', example='Wallace', max_length=50)]
+    cpf: Annotated[str, Field(description='CPF do atleta', example='12345678900', max_length=11)]
+    idade: Annotated[int, Field(description='Idade do atleta', example=25)]
+    peso: Annotated[PositiveFloat, Field(description='Peso do atleta', example=75.5)]
+    altura: Annotated[PositiveFloat, Field(description='Altura do atleta', example=1.70)]
+    sexo: Annotated[str, Field(description='Sexo do atleta', example='M', max_length=1)]
+    categoria: Annotated[CategoriaIn, Field(description='Categoria do atleta')]
+    centro_treinamento: Annotated[CentroTreinamentoAtleta, Field(description='Centro de treinamento do atleta')]
+
+
+class AtletaIn(Atleta):
+    pass
+
+
+class AtletaOut(Atleta, OutMixin):
+    pass
+
+class AtletaUpdate(BaseSchema):
+    nome: Annotated[Optional[str], Field(None, description='Nome do atleta', example='Joao', max_length=50)]
+    idade: Annotated[Optional[int], Field(None, description='Idade do atleta', example=25)]
