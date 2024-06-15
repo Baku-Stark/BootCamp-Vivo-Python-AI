@@ -11,7 +11,7 @@
 ## Criando ambiente virtual
 
 ```bash
-pyenv virtualenv <python version> <virtual env name>
+pyenv virtualenv 3.12.3 <virtual env name>
 ```
 
 ## Excluir ambiente virtual
@@ -68,6 +68,7 @@ precommit-install:
 
 test:
 	@poetry run pytest
+  ou @PYTHONPATH=. pytest
 
 test-matching:
 	@poetry run pytest -s -rx -k $(K) --pdb store ./tests/
